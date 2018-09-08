@@ -1,5 +1,5 @@
 module ElFinderS3
-  require 'memcached'
+  # require 'memcached'
   require 'cache'
 
   class Adapter
@@ -11,7 +11,8 @@ module ElFinderS3
       }
       @cached_responses = {}
       @s3_connector = ElFinderS3::S3Connector.new server
-      @cache_connector = cache_connector.nil? ? ElFinderS3::CacheConnector.new : @cache_connector = cache_connector
+      # @cache_connector = cache_connector.nil? ? ElFinderS3::CacheConnector.new : @cache_connector = cache_connector
+      @cache_connector = cache_connector || ElFinderS3::CacheConnector.new
       # client = Memcached.new('127.0.0.1:11211', :binary_protocol => true)
       # @cache = Cache.wrap(client)
     end
@@ -54,11 +55,12 @@ module ElFinderS3
 
     def path_type(pathname)
       @cache_connector.cached ElFinderS3::Operations::PATH_TYPE, pathname do
-        result = :directory
-        if pathname.to_s == '/'
-          result = :directory
-        end
-        result
+        # result = :directory
+        # if pathname.to_s == '/'
+        #   result = :directory
+        # end
+        # result
+        File.extname(pathname.to_s).empty? ? :directory : :file
       end
     end
 
@@ -71,8 +73,7 @@ module ElFinderS3
     #FIXME
     def mtime(pathname)
       @cache_connector.cached ElFinderS3::Operations::MTIME, pathname do
-        #mtime(pathname.to_s)
-        0
+        @s3_connector.mtime(pathname)
       end
     end
 
@@ -118,6 +119,12 @@ module ElFinderS3
     end
 
     def delete(pathname)
+      path = pathname.file? ? pathname.to_file_prefix_s : pathname.to_prefix_s
+      if @s3_connector.delete(path)
+        @cache_connector.clear_cache(pathname)
+      else
+        false
+      end
       #FIXME
       # ftp_context do
       #   ElFinderS3::Connector.logger.debug "  \e[1;32mFTP:\e[0m    Deleting #{pathname}"

@@ -9,6 +9,7 @@ module ElFinderS3
       Aws.config.update(
         {
           region: server[:region],
+          force_path_style: true,
           credentials: Aws::Credentials.new(server[:access_key_id], server[:secret_access_key])
         }
       )
@@ -18,13 +19,14 @@ module ElFinderS3
 
     def ls_la(pathname)
       prefix = pathname.to_prefix_s
-      query = {
-        bucket: @bucket_name,
-        delimiter: '/',
-        encoding_type: 'url',
-        max_keys: 100,
-        prefix: prefix
-      }
+      # query = {
+      #   bucket: @bucket_name,
+      #   delimiter: '/',
+      #   encoding_type: 'url',
+      #   max_keys: 100,
+      #   prefix: prefix
+      # }
+      query = { bucket: @bucket_name, delimiter: '/', encoding_type: nil, max_keys: 100, prefix: prefix }
 
       response = @s3_client.list_objects(query)
       result = {
@@ -106,5 +108,19 @@ module ElFinderS3
         0
       end
     end
+
+    def mtime(pathname)
+      query = {
+        bucket: @bucket_name,
+        key: pathname.file? ? pathname.to_file_prefix_s : pathname.to_prefix_s
+      }
+      begin
+        head = @s3_client.head_object(query)
+        head[:last_modified]
+      rescue Aws::S3::Errors::NotFound
+        0
+      end
+    end
+
   end
 end

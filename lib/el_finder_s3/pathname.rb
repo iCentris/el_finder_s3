@@ -97,8 +97,8 @@ module ElFinderS3
     #
     def fullpath
       @fullpath ||= (@path.nil? ? @root : @root + @path)
-      b = @path.nil? ? @root : @root + @path
-      return @fullpath
+      # b = @path.nil? ? @root : @root + @path
+      # return @fullpath
     end
 
     # of fullpath
@@ -164,6 +164,12 @@ module ElFinderS3
       return prefix_s
     end
 
+    def to_file_prefix_s
+      result = to_prefix_s
+      result[-1] = '' unless result[-1] != '/'
+      result
+    end
+
     # of to_s
     alias_method :to_str, :to_s
 
@@ -226,11 +232,11 @@ module ElFinderS3
     # of duplicate
 
     #
-    def rename(to)
-      to = self.class.new(@adapter, to)
-      realpath.rename(to.fullpath.to_s)
-      to
-    end
+    # def rename(to)
+    #   to = self.class.new(@adapter, to)
+    #   realpath.rename(to.fullpath.to_s)
+    #   to
+    # end
 
     # of rename
 
