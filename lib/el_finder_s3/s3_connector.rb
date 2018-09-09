@@ -6,15 +6,15 @@ module ElFinderS3
     :bucket_name
 
     def initialize(server)
-      Aws.config.update(
-        {
-          region: server[:region],
-          force_path_style: true,
-          credentials: Aws::Credentials.new(server[:access_key_id], server[:secret_access_key])
-        }
-      )
+      # Aws.config.update(
+      #   {
+      #     region: server[:region],
+      #     force_path_style: true,
+      #     credentials: Aws::Credentials.new(server[:access_key_id], server[:secret_access_key])
+      #   }
+      # )
       @bucket_name = server[:bucket_name]
-      @s3_client = Aws::S3::Client.new
+      @s3_client = Aws::S3::Client.new(server.except(:bucket_name))
     end
 
     def ls_la(pathname)

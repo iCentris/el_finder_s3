@@ -143,7 +143,7 @@ module ElFinderS3
 
     def store(pathname, content)
       @s3_connector.store(pathname.to_file_prefix_s, content)
-      #TODO clear_cache(pathname)
+      @cache_connector.clear_cache(pathname, false)
     end
   end
 end
