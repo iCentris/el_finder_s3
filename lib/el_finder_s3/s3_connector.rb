@@ -84,10 +84,20 @@ module ElFinderS3
     end
 
     def store(filename, content)
-      if content.is_a?(MiniMagick::Image)
-        @s3_client.put_object(bucket: @bucket_name, key: filename, body: content.to_blob, acl: 'public-read')
-      elsif @s3_client.put_object(bucket: @bucket_name, key: filename, body: content, acl: 'public-read')
-      end
+      content_type = ElFinderS3::MimeType.for(filename)
+      Rails.logger.info("Uploading file #{filename}:::::content_type: #{content_type}")
+
+      options = {
+        bucket: @bucket_name,
+        key: filename,
+        body: content,
+        acl: 'public-read'
+      }
+
+      options[:content_type] = content_type if content_type
+      options[:body] = content.to_blob if content.is_a?(MiniMagick::Image)
+
+      @s3_client.put_object(options)
     end
 
     def get(filename)
